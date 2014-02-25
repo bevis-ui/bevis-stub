@@ -35,6 +35,11 @@ clean:
 page:
 	./tools/make-page.sh
 
+# Create new block
+.PHONY: block
+block:
+	./tools/make-block.sh
+
 # Run application in development mode
 app-dev:
 	@$(NPM_BIN)/supervisor -w server,configs -- server/boot.js

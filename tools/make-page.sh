@@ -1,7 +1,20 @@
 #!/bin/sh
 
-printf "Enter Page Name: "
+echo ""
+printf "Введите имя страницы: "
 read PageName
+
+
+if [ -d build/$PageName  ]; then
+    echo "Операция прервана: Директория с таким именем существует по адресу build/$PageName"
+    exit
+fi
+
+if [ -d pages/$PageName-page  ]; then
+    echo "Операция прервана: Директория с таким именем существует по адресу pages/$PageName-page"
+    exit
+fi
+
 mkdir -p build
 mkdir -p build/$PageName
 echo "module.exports.deps = ['${PageName}-page'];" > build/$PageName/$PageName.bemdecl.js
@@ -27,3 +40,8 @@ echo "module.exports = function (pages) {
         };
     });
 };" > pages/$PageName-page/$PageName-page.page.js
+
+echo "-------------------------------------------------"
+echo "Создана страница pages/$PageName-page"
+echo "-------------------------------------------------"
+ls -la pages/$PageName-page
