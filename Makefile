@@ -33,7 +33,7 @@ clean:
 # Create new page
 .PHONY: page
 page:
-	./make-page.sh
+	./tools/make-page.sh
 
 # Run application in development mode
 app-dev:
