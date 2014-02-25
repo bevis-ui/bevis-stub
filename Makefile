@@ -30,6 +30,11 @@ build:
 clean:
 	$(ENB) make clean
 
+# Create new page
+.PHONY: page
+page:
+	./make-page.sh
+
 # Run application in development mode
 app-dev:
 	@$(NPM_BIN)/supervisor -w server,configs -- server/boot.js

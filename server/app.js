@@ -30,7 +30,12 @@ app
 /**
  * Routing
  */
-app.get('/', Page.createHandler('index'));
+app
+    .get('/', Page.createHandler('index'))
+    .get('/:page', function (req, res, next) {
+        var pageName = req.params.page;
+        Page.createHandler(pageName)(req, res, next);
+    });
 
 function startApp(portOrSocket) {
     app
