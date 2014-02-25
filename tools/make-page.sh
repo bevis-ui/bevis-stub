@@ -15,11 +15,9 @@ if [ -d pages/$PageName-page  ]; then
     exit
 fi
 
-mkdir -p build
 mkdir -p build/$PageName
 echo "module.exports.deps = ['${PageName}-page'];" > build/$PageName/$PageName.bemdecl.js
 
-mkdir -p pages
 mkdir -p pages/$PageName-page
 echo "- page" > pages/$PageName-page/$PageName-page.deps.yaml
 echo "module.exports = function (pages) {

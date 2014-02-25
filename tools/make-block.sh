@@ -10,7 +10,6 @@ if [ -d blocks/$BlockName ]; then
 fi
 
 
-mkdir -p blocks
 mkdir -p blocks/$BlockName
 
 echo ".$BlockName {
