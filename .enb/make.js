@@ -11,7 +11,9 @@ module.exports = function (config) {
             require('enb/techs/files'),
             require('enb-stylus/techs/css-stylus-with-autoprefixer'),
             require('enb-bt/techs/bt-server'),
-            [require('enb/techs/js'), {target: '?.pre.js'}],
+            [require('enb-bt/techs/bt-client-module'), {target: '?.bt-client.js'}],
+            [require('enb/techs/js'), {target: '?.source.js'}],
+            [require('enb/techs/file-merge'), {sources: ['?.source.js', '?.bt-client.js'], target: '?.pre.js'}],
             [require('enb-modules/techs/prepend-modules'), {source : '?.pre.js', target: '?.js'}],
             require('./techs/page')
         ]);
