@@ -11,7 +11,8 @@ module.exports = function (config) {
             require('enb/techs/files'),
             require('enb-stylus/techs/css-stylus-with-autoprefixer'),
             require('enb-bt/techs/bt-server'),
-            require('enb/techs/js'),
+            [require('enb/techs/js'), {target: '?.pre.js'}],
+            [require('enb-modules/techs/prepend-modules'), {source : '?.pre.js', target: '?.js'}],
             require('./techs/page')
         ]);
         nodeConfig.addTargets(["_?.js", "_?.css"]);
