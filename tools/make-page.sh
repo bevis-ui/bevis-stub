@@ -5,18 +5,10 @@ printf "Введите имя страницы: "
 read PageName
 
 
-if [ -d build/$PageName  ]; then
-    echo "Операция прервана: Директория с таким именем существует по адресу build/$PageName"
-    exit
-fi
-
 if [ -d pages/$PageName-page  ]; then
     echo "Операция прервана: Директория с таким именем существует по адресу pages/$PageName-page"
     exit
 fi
-
-mkdir -p build/$PageName
-echo "module.exports.deps = ['${PageName}-page'];" > build/$PageName/$PageName.bemdecl.js
 
 mkdir -p pages/$PageName-page
 echo "- page" > pages/$PageName-page/$PageName-page.deps.yaml
@@ -30,7 +22,7 @@ echo "module.exports = function (pages) {
                 {url: options.assetsPath + '.css'}
             ],
             scripts: [
-                {url: options.assetsPath + '.js'}
+                {url: options.assetsPath + '.' + params.lang + '.js'}
             ],
             body: [
                 // здесь ваши блоки

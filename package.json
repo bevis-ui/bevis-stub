@@ -9,7 +9,7 @@
     "author": "Yandex Maps",
     "license": "MIT",
     "dependencies": {
-        "enb-bt": "0.0.17",
+        "enb-bevis-helper": ">=1.0.2",
         "express": "3.2.6",
         "inherit": "1.0.4",
         "node.extend": "1.0.7",
@@ -19,9 +19,6 @@
         "ym": "0.0.8"
     },
     "devDependencies": {
-        "enb": "0.8.43",
-        "enb-modules": "0.0.14",
-        "enb-stylus": "0.0.3",
         "jscs": "1.0.13",
         "jshint-groups": "0.5.3",
         "chai": "1.7.2",
@@ -31,5 +28,12 @@
         "phantomjs": "1.9.1-0",
         "sinon": "1.7.3",
         "supervisor": "0.5.3"
+    },
+    "enb": {
+        "sources": [
+            "blocks",
+            "core",
+            "pages"
+        ]
     }
 }
