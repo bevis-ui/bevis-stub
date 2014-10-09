@@ -9,7 +9,7 @@
     "author": "Yandex Maps",
     "license": "MIT",
     "dependencies": {
-        "enb-bevis-helper": ">=1.0.2",
+        "enb-bevis-helper": ">=3.0.0",
         "express": "3.2.6",
         "inherit": "1.0.4",
         "node.extend": "1.0.7",
