@@ -25,7 +25,7 @@ module.exports = function (bt) {
         }
 
         return [
-            ctx.getParam('doctype') || '<!DOCTYPE html>',
+            {raw: ctx.getParam('doctype') || '<!DOCTYPE html>'},
             {
                 elem: 'html',
                 content: [
