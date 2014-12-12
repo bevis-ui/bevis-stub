@@ -1,0 +1,4 @@
+- page
+- block: block
+  elem: auto-init
+- input
