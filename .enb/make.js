@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 
 module.exports = function (config) {
 
@@ -17,7 +18,7 @@ module.exports = function (config) {
         .useAutopolyfiller();
 
     fs.readdirSync('pages').forEach(function(pageName) {
-        var nodeName = pageName.replace(/(.*?)\-page/, 'build/$1');
+        var nodeName = pageName.replace(/(.*?)\-page/, path.join('build', '$1'));
 
         config.node(nodeName, function (nodeConfig) {
 

@@ -8,7 +8,7 @@ module.exports = require('enb/lib/build-flow').create()
     .useFileList(['page.js'])
     .needRebuild(function (cache) {
         this._pagesFile = this._pagesFile || '.enb/lib/pages.js';
-        this._pagesFile = this.node._root + '/' + this._pagesFile;
+        this._pagesFile = path.join(this.node._root, this._pagesFile);
         return cache.needRebuildFile('page-file', this._pagesFile);
     })
     .saveCache(function (cache) {
