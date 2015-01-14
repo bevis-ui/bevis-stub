@@ -41,5 +41,9 @@ node_modules\.bin\enb make
 node_modules\.bin\supervisor -w server,configs -- server/boot.js
 ```
 
-В проекте используется символическая ссылка на каталог (configs\current), в некоторых случаях это может вызвать проблему. 
-[hotfix](https://github.com/bevis-ui/bevis-stub/pull/4)
+В проекте используется символическая ссылка на каталог (configs\current), это может вызвать проблему. 
+В некоторых случаях вам может помочь следующий hotfix:
+
+    rm configs\current
+    mklink /J configs\current configs\development
+    git update-index --assume-unchanged configs/current
