@@ -1,10 +1,9 @@
 ## Запуск
-```
+```shell
 git clone git@github.com:bevis-ui/bevis-stub.git your-project
 cd your-project
 make
 ```
-
 Команда `make` выкачает все необходимые инструменты, соберет единственную страницу и запустит локальный сервер.
 
 Откройте в браузере `http://localhost:8080/`
@@ -33,17 +32,17 @@ make block
 
 
 ## Запуск в Windows
-```
+```shell
 git clone git@github.com:bevis-ui/bevis-stub.git your-project
 cd your-project
 npm install
 node_modules\.bin\enb make
 node_modules\.bin\supervisor -w server,configs -- server/boot.js
 ```
-
 В проекте используется символическая ссылка на каталог (configs\current), это может вызвать проблему. 
 В некоторых случаях вам может помочь следующий hotfix:
-
-    rm configs\current
-    mklink /J configs\current configs\development
-    git update-index --assume-unchanged configs/current
+```shell
+rm configs\current
+mklink /J configs\current configs\development
+git update-index --assume-unchanged configs/current
+```
