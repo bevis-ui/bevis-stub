@@ -1,7 +1,7 @@
 {
     "name": "bevis-stub",
     "private": true,
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Project stub based on BEViS",
     "scripts": {
         "test": "make test"
@@ -22,7 +22,7 @@
         "jscs": "1.0.13",
         "jshint-groups": "0.5.3",
         "chai": "1.7.2",
-        "git-hooks": "0.0.3",
+        "git-hooks": "0.0.10",
         "mocha": "1.12.0",
         "mocha-phantomjs": "3.1.0",
         "phantomjs": "1.9.1-0",

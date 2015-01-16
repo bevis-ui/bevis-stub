@@ -1,5 +1,5 @@
 ## Запуск
-```
+```shell
 git clone git@github.com:bevis-ui/bevis-stub.git your-project
 cd your-project
 make
@@ -7,6 +7,7 @@ make
 Команда `make` выкачает все необходимые инструменты, соберет единственную страницу и запустит локальный сервер.
 
 Откройте в браузере `http://localhost:8080/`
+
 
 ## Как сделать ещё одну страницу?
 Запустить команду и ответить на вопрос:
@@ -28,3 +29,20 @@ make block
 После на файловой системе станет доступна директория с файлами блока `/blocks/<ИМЯ БЛОКА>`.
 
 Успехов! :)
+
+
+## Запуск в Windows
+```shell
+git clone git@github.com:bevis-ui/bevis-stub.git your-project
+cd your-project
+npm install
+node_modules\.bin\enb make
+node_modules\.bin\supervisor -w server,configs -- server/boot.js
+```
+В проекте используется символическая ссылка на каталог (configs\current), это может вызвать проблему. 
+В некоторых случаях вам может помочь следующий hotfix:
+```shell
+rm configs\current
+mklink /J configs\current configs\development
+git update-index --assume-unchanged configs/current
+```
