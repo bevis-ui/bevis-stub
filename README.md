@@ -22,6 +22,7 @@ node_modules\.bin\supervisor -w server,configs -- server/boot.js
 rm configs\current
 mklink /J configs\current configs\development
 git update-index --assume-unchanged configs/current
+```
 
 ## Как сделать ещё одну страницу?
 Запустить команду и ответить на вопрос:
