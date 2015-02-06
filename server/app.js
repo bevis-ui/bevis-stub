@@ -14,6 +14,7 @@ app
         next();
     })
     .use(assets.middleware())
+    .use('/', express.static(__dirname + '/../'))
     .use('/blocks', express.static(__dirname + '/../blocks'))
     .use(app.router)
     .use(function (req, res) {
