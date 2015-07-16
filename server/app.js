@@ -58,7 +58,7 @@ function startApp(portOrSocket) {
 }
 
 exports.start = function () {
-    startApp(env.socket || process.env.PORT || 8080);
+    startApp(env.socket || env.port || 8080);
 };
 
 if (!module.parent) {
