@@ -4,6 +4,7 @@
     "version": "0.0.1",
     "description": "Project stub based on BEViS",
     "scripts": {
+        "start": "node server/boot.js",
         "test": "make test"
     },
     "author": "Yandex Maps",
