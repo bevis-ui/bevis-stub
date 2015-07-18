@@ -1,44 +1,36 @@
+var fs = require('fs');
+var path = require('path');
+
 module.exports = function (config) {
+
     config.setLanguages(['ru']);
 
-    config.nodes('build/*');
+    config.includeConfig('enb-bevis-helper');
 
-    config.nodeMask(/^build\/.*$/, function (nodeConfig) {
-        nodeConfig.addTechs([
-            [require('enb/techs/levels'), {levels: getLevels()}],
-            [require('enb/techs/file-provider'), {target: '?.bemdecl.js'}],
-            require('enb-modules/techs/deps-with-modules'),
-            require('enb/techs/files'),
-            require('enb-stylus/techs/css-stylus-with-autoprefixer'),
-            require('enb-bt/techs/bt-server'),
-            [require('enb-bt/techs/bt-client-module'), {target: '?.bt-client.js'}],
-            [require('enb/techs/js'), {target: '?.source.js'}],
-            [require('enb/techs/file-merge'), {sources: ['?.source.js', '?.bt-client.js'], target: '?.pre.js'}],
-            [require('enb-modules/techs/prepend-modules'), {source : '?.pre.js', target: '?.js'}],
-            require('./techs/page')
-        ]);
-        nodeConfig.addTargets(["_?.js", "_?.css"]);
+    var bevisHelper = config.module('enb-bevis-helper')
+        .browserSupport([
+            'IE >= 9',
+            'Safari >= 5',
+            'Chrome >= 33',
+            'Opera >= 12.16',
+            'Firefox >= 28'
+        ])
+        .useAutopolyfiller();
 
-        nodeConfig.mode('development', function(nodeConfig) {
-            nodeConfig.addTechs([
-                [require('enb/techs/file-copy'), {sourceTarget: '?.js', destTarget: '_?.js'}],
-                [require('enb/techs/file-copy'), {sourceTarget: '?.css', destTarget: '_?.css'}]
-           ]);
+    fs.readdirSync('pages').forEach(function(pageName) {
+        var nodeName = pageName.replace(/(.*?)\-page/, path.join('build', '$1'));
+
+        config.node(nodeName, function (nodeConfig) {
+
+            bevisHelper
+                .sourceDeps(pageName)
+                .forServerPage()
+                .configureNode(nodeConfig);
+
+            nodeConfig.addTech(require('./techs/page'));
+            nodeConfig.addTarget('?.page.js');
         });
 
-        nodeConfig.mode('production', function(nodeConfig) {
-            nodeConfig.addTechs([
-                [require('enb/techs/borschik'), {sourceTarget: '?.js', destTarget: '_?.js'}],
-                [require('enb/techs/borschik'), {sourceTarget: '?.css', destTarget: '_?.css', freeze: 'yes'}]
-           ]);
-        });
     });
 
-    function getLevels() {
-        return [
-            'core',
-            'blocks',
-            'pages'
-        ].map(config.resolvePath.bind(config));
-    }
 };

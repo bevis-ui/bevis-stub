@@ -1,5 +1,6 @@
-NPM_BIN = node_modules/.bin
+NPM_BIN = $(shell npm bin)
 ENB = $(NPM_BIN)/enb
+# YENV := 
 
 all: npm build app-dev
 
@@ -23,7 +24,7 @@ test:
 # Build project
 .PHONY: build
 build:
-	YENV=$(YENV) $(ENB) make
+	$(ENB) make
 
 # Clean build results
 .PHONY: clean

@@ -10,7 +10,7 @@ modules.define(
                 localStorage.setItem(key, key);
                 localStorage.removeItem(key);
                 this._storage = localStorage;
-            } catch(e) {
+            } catch (e) {
                 this._storage = {};
             }
         },

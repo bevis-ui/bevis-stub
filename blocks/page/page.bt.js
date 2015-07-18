@@ -25,7 +25,7 @@ module.exports = function (bt) {
         }
 
         return [
-            ctx.getParam('doctype') || '<!DOCTYPE html>',
+            {raw: ctx.getParam('doctype') || '<!DOCTYPE html>'},
             {
                 elem: 'html',
                 content: [
@@ -138,11 +138,11 @@ module.exports = function (bt) {
         var ie = ctx.getParam('ie');
         if (ie !== undefined) {
             if (ie === true) {
-                return ['<!--[if IE]>', ctx.getJson(), '<![endif]-->'];
+                return [{raw: '<!--[if IE]>'}, ctx.getJson(), {raw: '<![endif]-->'}];
             } else if (ie === false) {
-                return ['<!--[if !IE]> -->', ctx.getJson(), '<!-- <![endif]-->'];
+                return [{raw: '<!--[if !IE]> -->'}, ctx.getJson(), {raw: '<!-- <![endif]-->'}];
             } else {
-                return ['<!--[if ' + ie + ']>', ctx.getJson(), '<![endif]-->'];
+                return [{raw: '<!--[if ' + ie + ']>'}, ctx.getJson(), {raw: '<![endif]-->'}];
             }
         }
     });
