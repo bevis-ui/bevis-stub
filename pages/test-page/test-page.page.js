@@ -8,15 +8,20 @@ module.exports = function (pages) {
                 {url: options.assetsPath + '.css'}
             ],
             scripts: [
-                {url: options.assetsPath + '.js'}
+                {url: options.assetsPath + '.' + params.lang + '.js'}
             ],
             body: [
+/*
                 {
                     block: 'input',
                     view: 'large',
                     value: 'Привет, Бивис',
                     name: 'loginField',
                     placeholder: 'Инпут на сайте'
+                }
+*/
+                {
+                    block: 'form'
                 }
             ]
         };

@@ -65,22 +65,6 @@ input_skin_base($height) {
         }
     }
 
-    &._disabled{
-        border-color: transparent !important;
-        cursor: default;
-
-        if (ie == 8) {
-            background-color: #ebebeb !important;
-        } else {
-            background-color: rgba(0, 0, 0, 0.08) !important;
-        }
-    }
-
-    &._disabled &__control{
-        user-select: none;
-        background-color: inherit;
-    }
-
     &__clear {
         position: absolute;
         top: 0;
@@ -102,4 +86,25 @@ input_skin_base($height) {
             display: block;
         }
     }
+
+    &._disabled{
+        border-color: transparent !important;
+        cursor: default;
+
+        if (ie == 8) {
+            background-color: #ebebeb !important;
+        } else {
+            background-color: rgba(0, 0, 0, 0.08) !important;
+        }
+    }
+
+    &._disabled &__control{
+        user-select: none;
+        background-color: inherit;
+    }
+
+    &._disabled &__clear{
+        display: none;
+    }
+
 }

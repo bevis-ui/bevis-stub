@@ -2,3 +2,5 @@
 - block: block
   elem: auto-init
 - input
+- super-input
+- form
