@@ -13,44 +13,52 @@ modules.define(
     function (
         provide,
         inherit,
-        EventEmitter,
-        EventManager,
-        BlockEvent,
+        YEventEmitter,
+        YEventManager,
+        YBlockEvent,
         $,
         vow,
         bt,
         extend
     ) {
 
-    var Block = inherit(EventEmitter, /** @lends Block.prototype */ {
+    /**
+     * @name YBlock
+     * @augments YEventEmitter
+     */
+    var YBlock = inherit(YEventEmitter, /** @lends YBlock.prototype */ {
         /**
          * Конструктор базового блока.
          * Его следует вызывать с помощью `this.__base` в наследующих классах.
          *
          * @constructor
          * @param {jQuery} [domNode] Элемент, на котором следует инициализировать блок.
-         * @param {Object} [options] Опции блока. Содержит все декларированные опции BH-шаблона блока.
+         * @param {Object} [options] Опции блока. Содержит все декларированные опции BT-шаблона блока.
          *
          * @example
-         * modules.define('control', ['block'], function (provide, Block) {
-         *     var Control = inherit(Block, {
+         * modules.define('y-control', ['y-block'], function (provide, YBlock) {
+         *     var YControl = inherit(YBlock, {
          *         __constructor: function () {
          *             this.__base.apply(this, arguments);
          *             // Дополнительные действия по инициализации
          *         }
          *     }, {
          *         getBlockName: function () {
-         *             return 'control';
+         *             return 'y-control';
          *         }
          *     }));
          *
-         *     provide(Control);
+         *     provide(YControl);
          * });
          */
         __constructor: function (domNode, options) {
+            if (domNode !== null && !(domNode instanceof $)) {
+                options = domNode;
+                domNode = null;
+            }
             if (!domNode) {
                 options = options || {};
-                domNode = this._createDomElement(options);
+                domNode = this._createBlockDomNode(options);
             }
 
             // Если параметры не переданы, извлекаем их из DOM-ноды.
@@ -60,13 +68,14 @@ modules.define(
                 options = extend(options, this.__self._getDomNodeOptions(domNode).options || {});
             }
 
-            // Store block instance link in jQuery data storage for this node.
-            var nodeStorage = this.__self._getDomNodeDataStorage(domNode);
-            nodeStorage.blocks[this.__self.getBlockName()] = this;
+            domNode.addClass(this.__self._autoInitCssClass);
 
-            this._options = options;
+            // Сохраняем ссылку на экземпляр блока в jQuery-хранилище ноды.
+            this.__self._getDomNodeDataStorage(domNode).block = this;
+
+            this._initOptions = options;
             this._node = domNode;
-            this._eventManager = new EventManager(this);
+            this._eventManager = new YEventManager(this);
             this._stateCache = null;
             this.__self._liveInitIfRequired();
             this._cachedViewName = null;
@@ -75,6 +84,8 @@ modules.define(
         /**
          * Уничтожает блок. При уничтожении блок автоматически отвязывает все обработчики событий,
          * которые были привязаны к инстанции блока или привязаны внутри блока, используя метод `_bindTo()`.
+         *
+         * После уничтожения блока удаляет его из DOM-дерева.
          *
          * Этот метод следует перекрывать, если необходимы дополнительные действия при уничтожении блока.
          * При этом необходимо вызывать базовую реализацию деструктора с помощью `this.__base()`.
@@ -86,18 +97,27 @@ modules.define(
          * }
          */
         destruct: function () {
-            if (this._destructed) {
-                return;
+            var nodeStorage;
+            if (this._node) {
+                nodeStorage = this.__self._getDomNodeDataStorage(this._node);
             }
+            if (!nodeStorage || !nodeStorage.block) {
+                throw new Error('Block `' + this.__self.getBlockName() + '` was already destroyed');
+            }
+            delete nodeStorage.block;
+
+            this.__self.destructDomTree(this.getDomNode());
+
             this.offAll();
 
             this._eventManager.unbindAll();
             this._eventManager = null;
 
-            this._options = null;
+            this._node.remove();
             this._node = null;
+
+            this._initOptions = null;
             this._stateCache = null;
-            this._destructed = true;
         },
 
         /**
@@ -112,16 +132,16 @@ modules.define(
         /**
          * Добавляет обработчик события `event` объекта `emitter`. Контекстом обработчика
          * является экземпляр данного блока. Обработчик события автоматически удалится при вызове
-         * `Block.prototype.destruct()`.
+         * `YBlock.prototype.destruct()`.
          *
          * @protected
-         * @param {jQuery|Block} emitter
+         * @param {jQuery|YBlock} emitter
          * @param {String} event
          * @param {Function} callback
-         * @returns {Block}
+         * @returns {YBlock}
          *
          * @example
-         * var View = inherit(Block, {
+         * var View = inherit(YBlock, {
          *     __constructor: function (model) {
          *         this.__base();
          *
@@ -139,13 +159,13 @@ modules.define(
 
         /**
          * Удаляет обработчик события `event` объекта `emitter`, добавленный с помощью
-         * `Block.prototype._bindTo()`.
+         * `YBlock.prototype._bindTo()`.
          *
          * @protected
-         * @param {jQuery|Block} emitter
+         * @param {jQuery|YBlock} emitter
          * @param {String} event
          * @param {Function} callback
-         * @returns {Block}
+         * @returns {YBlock}
          */
         _unbindFrom: function (emitter, event, callback) {
             this._eventManager.unbindFrom(emitter, event, callback);
@@ -154,26 +174,26 @@ modules.define(
 
         /**
          * Исполняет обработчики события `blockEvent` блока. Первым аргументом в обработчики события будет
-         * передан экземпляр класса `BlockEvent`.
+         * передан экземпляр класса `YBlockEvent`.
          *
-         * @param {String|BlockEvent} blockEvent Имя события или экземпляр класса `BlockEvent`.
+         * @param {String|YBlockEvent} blockEvent Имя события или экземпляр класса `YBlockEvent`.
          * @param {Object} [data] Дополнительные данные, которые можно получить через `e.data` в обработчике.
-         * @returns {Block}
+         * @returns {YBlock}
          *
          * @example
-         * var block = new Block();
+         * var block = new YBlock();
          * block.on('click', function (e) {
          *     console.log(e.type);
          * });
          *
          * block.emit('click'); // => 'click'
          *
-         * var event = new BlockEvent('click');
+         * var event = new YBlockEvent('click');
          * block.emit(event); // => 'click'
          */
         emit: function (blockEvent, data) {
             if (typeof blockEvent === 'string') {
-                blockEvent = new BlockEvent(blockEvent);
+                blockEvent = new YBlockEvent(blockEvent);
             }
 
             blockEvent.data = data;
@@ -195,6 +215,47 @@ modules.define(
         },
 
         /**
+         * Проксирует событие переданного экземпляра класса `YBlock`.
+         *
+         * @protected
+         * @param {YBlock} emitter
+         * @param {String} eventName
+         * @param {String} [newEventName]
+         *
+         * @example
+         * var block1 = new YBlock();
+         *
+         * var Block = inherit(YBlock, {
+         *     __constructor: function () {
+         *         this.__base.apply(this, arguments);
+         *         this._proxyEvent(block1, 'event', 'new-event');
+         *     }
+         * });
+         *
+         * var block2 = new Block();
+         *
+         * block2.on('new-event', function (e) {
+         *     console.log(e.target); // block2
+         *     console.log(e.data); // {a: 1}
+         * });
+         *
+         * block1.emit('event', {a: 1});
+         */
+        _proxyEvent: function (emitter, eventName, newEventName) {
+            if (!(emitter instanceof YBlock)) {
+                throw new Error(
+                    'YBlock#_proxyEvent(): The first argument should be an instance of `YBlock`'
+                );
+            }
+            this._bindTo(emitter, eventName, function (event) {
+                if (newEventName) {
+                    eventName = newEventName;
+                }
+                this.emit(eventName, event.data);
+            });
+        },
+
+        /**
          * Возвращает имя отображения данного блока.
          *
          * @returns {String|undefined}
@@ -213,7 +274,7 @@ modules.define(
 
         /**
          * Устанавливает CSS-класс по имени и значению состояния.
-         * Например, для блока `button` вызов `this._setState('pressed', 'yes')`
+         * Например, для блока `y-button` вызов `this._setState('pressed', 'yes')`
          * добавляет CSS-класс с именем `pressed_yes`.
          *
          * С точки зрения `BEM` похож на метод `setMod`, но не вызывает каких-либо событий.
@@ -222,7 +283,7 @@ modules.define(
          * @param {String} stateName Имя состояния.
          * @param {String|Boolean} [stateVal=true] Значение.
          *                                         Если указан `false` или пустая строка, то CSS-класс удаляется.
-         * @returns {Block}
+         * @returns {YBlock}
          */
         _setState: function (stateName, stateVal) {
             if (arguments.length === 1) {
@@ -248,14 +309,14 @@ modules.define(
 
         /**
          * Удаляет CSS-класс состояния с заданным именем.
-         * Например, для блока `button` вызов `this._removeState('side')`
+         * Например, для блока `y-button` вызов `this._removeState('side')`
          * удалит CSS-классы с именами `side_left`, `side_right` и т.п.
          *
          * С точки зрения `BEM` похож на метод `delMod`, но не вызывает каких-либо событий.
          *
          * @protected
          * @param {String} stateName
-         * @returns {Block}
+         * @returns {YBlock}
          */
         _removeState: function (stateName) {
             return this._setState(stateName, false); // false удаляет состояние с указанным именем
@@ -263,7 +324,7 @@ modules.define(
 
         /**
          * Возвращает значение состояния на основе CSS-классов блока.
-         * Например, для блока `button`, у которого на DOM-элементе висит класс `pressed_yes`,
+         * Например, для блока `y-button`, у которого на DOM-элементе висит класс `pressed_yes`,
          * вызов `this._getState('pressed')` возвратит значение `yes`.
          *
          * С точки зрения `BEM` похож на метод `getMod`.
@@ -281,7 +342,7 @@ modules.define(
 
         /**
          * Переключает значение состояния блока (полученное на основе CSS-классов) между двумя значениями.
-         * Например, для блока `button`, у которого на DOM-элементе висит класс `pressed_yes`,
+         * Например, для блока `y-button`, у которого на DOM-элементе висит класс `pressed_yes`,
          * вызов `this._toggleState('pressed', 'yes', '')` удалит класс `pressed_yes`,
          * а повторный вызов — вернет на место.
          *
@@ -291,7 +352,7 @@ modules.define(
          * @param {String} stateName
          * @param {String|Boolean} stateVal1
          * @param {String|Boolean} stateVal2
-         * @returns {Block}
+         * @returns {YBlock}
          */
         _toggleState: function (stateName, stateVal1, stateVal2) {
             stateVal1 = getStateValue(stateVal1);
@@ -307,7 +368,7 @@ modules.define(
 
         /**
          * Устанавливает CSS-класс для элемента по имени и значению состояния.
-         * Например, для элемента `text` блока `button` вызов
+         * Например, для элемента `text` блока `y-button` вызов
          * `this._setElementState(this._findElement('text'), 'pressed', 'yes')`
          * добавляет CSS-класс с именем `pressed_yes`.
          *
@@ -318,7 +379,7 @@ modules.define(
          * @param {String} stateName Имя состояния.
          * @param {String|Boolean} [stateVal=true] Значение.
          *                                         Если указан `false` или пустая строка, то CSS-класс удаляется.
-         * @returns {Block}
+         * @returns {YBlock}
          */
         _setElementState: function (domNode, stateName, stateVal) {
             if (domNode) {
@@ -343,7 +404,7 @@ modules.define(
 
         /**
          * Удаляет CSS-класс состояния с заданным именем для элемента.
-         * Например, для элемента `text` блока `button` вызов
+         * Например, для элемента `text` блока `y-button` вызов
          * `this._removeElementState(this._findElement('text'), 'side')`
          * удалит CSS-классы с именами `side_left`, `side_right` и т.п.
          *
@@ -352,7 +413,7 @@ modules.define(
          * @protected
          * @param {HTMLElement|jQuery} domNode
          * @param {String} stateName
-         * @returns {Block}
+         * @returns {YBlock}
          */
         _removeElementState: function (domNode, stateName) {
             // false удаляет состояние с указанным именем
@@ -361,7 +422,7 @@ modules.define(
 
         /**
          * Возвращает значение состояния на основе CSS-классов элемента.
-         * Например, для элемента `text` блока `button`,
+         * Например, для элемента `text` блока `y-button`,
          * у которого на DOM-элементе висит класс `pressed_yes`, вызов
          * `this._getElementState(this._findElement('text'), 'pressed')` возвратит значение `yes`.
          *
@@ -375,12 +436,7 @@ modules.define(
         _getElementState: function (domNode, stateName) {
             if (domNode) {
                 domNode = $(domNode);
-                var elemName = this._getElementName(domNode);
-                if (elemName) {
-                    return this._parseStateCssClasses(domNode)[stateName] || false;
-                } else {
-                    throw new Error('Unable to get BEM Element name from DOM Node.');
-                }
+                return this._parseStateCssClasses(domNode)[stateName] || false;
             } else {
                 throw new Error('`domNode` should be specified for `_getElementState` method.');
             }
@@ -388,7 +444,7 @@ modules.define(
 
         /**
          * Переключает значение состояния элемента блока (полученное на основе CSS-классов) между двумя значениями.
-         * Например, для элемента `text` блока `button`,
+         * Например, для элемента `text` блока `y-button`,
          * у которого на DOM-элементе висит класс `pressed_yes`, вызов
          * `this._toggleElementState(this._findElement('text'), 'pressed', 'yes', '')`
          * удалит класс `pressed_yes`, а повторный вызов — вернет на место.
@@ -400,7 +456,7 @@ modules.define(
          * @param {String} stateName
          * @param {String} stateVal1
          * @param {String} stateVal2
-         * @returns {Block}
+         * @returns {YBlock}
          */
         _toggleElementState: function (domNode, stateName, stateVal1, stateVal2) {
             stateVal1 = getStateValue(stateVal1);
@@ -460,28 +516,95 @@ modules.define(
         },
 
         /**
+         * Возвращает все родительские элементы с заданным именем.
+         *
+         * @protected
+         * @param {String} elementName Имя элемента.
+         * @param {HTMLElement|jQuery} childElement Элемент, среди родителей которого необходимо произвести поиск.
+         * @returns {jQuery[]}
+         *
+         * @example
+         * var branches = this._findAllParentElements('branch', item);
+         */
+        _findAllParentElements: function (elementName, childElement) {
+            if (childElement) {
+                childElement = $(childElement);
+                var view = this.getView();
+                var elems = childElement.parents(
+                    '.' + this.__self.getBlockName() + (view ? '_' + view : '') + '__' + elementName
+                );
+                var result = [];
+                var l = elems.length;
+                for (var i = 0; i < l; i++) {
+                    result.push($(elems[i]));
+                }
+                return result;
+            } else {
+                throw new Error('`childElement` should be specified for `_findAllParentElements` method.');
+            }
+        },
+
+        /**
+         * Возвращает первый родительский элемент с заданным именем.
+         *
+         * @protected
+         * @param {String} elementName Имя элемента.
+         * @param {HTMLElement|jQuery} childElement Элемент, среди родителей которого необходимо произвести поиск.
+         * @returns {jQuery|undefined}
+         *
+         * @example
+         * var branch = this._findParentElement('branch', item);
+         */
+        _findParentElement: function (elementName, childElement) {
+            if (childElement) {
+                return this._findAllParentElements(elementName, childElement)[0];
+            } else {
+                throw new Error('`childElement` should be specified for `_findParentElement` method.');
+            }
+        },
+
+        /**
+         * Создает и возвращает DOM-элемент элемента блока на основе BT-опций.
+         * Создание нового элемента осуществляется с помощью применения BT-шаблонов.
+         *
+         * @protected
+         * @param {Object|String} params BT-опции или имя элемента.
+         * @returns {jQuery}
+         */
+        _createElement: function (params) {
+            if (typeof params === 'string') {
+                params = {elem: params};
+            }
+            return $(bt.apply(extend(
+                {view: this.getView()},
+                params,
+                {block: this.__self.getBlockName()}
+            )));
+        },
+
+        /**
          * Возвращает параметры, которые были переданы блоку при инициализации.
          *
          * @protected
          * @returns {Object}
          *
          * @example
-         * var control = Control.fromDomNode(
-         *     $('<div class="control _init" onclick="return {\'control\':{level:5}}"></div>')
+         * var control = YControl.fromDomNode(
+         *     $('<div class="y-control _init" onclick="return {\'y-control\':{level:5}}"></div>')
          * );
          * // control:
-         * inherit(Block, {
+         * inherit(YBlock, {
          *     myMethod: function() {
          *         console.log(this._getOptions().level);
          *     }
          * }, {
          *     getBlockName: function() {
-         *         return 'control';
+         *         return 'y-control';
          *     }
          * });
          */
         _getOptions: function () {
-            return this._options;
+            return this._initOptions;
         },
 
         /**
@@ -493,16 +616,16 @@ modules.define(
          *
          * @example
          * // HTML:
-         * // <div class="control _init">
-         * //     <div class="control__text" data-options="{options:{level:5}}"></div>
+         * // <div class="y-control _init">
+         * //     <div class="y-control__text" data-options="{options:{level:5}}"></div>
          * // </div>
          *
-         * provide(inherit(Block, {
+         * provide(inherit(YBlock, {
          *     __constructor: function() {
          *         this.__base.apply(this, arguments);
          *         this._textParams = this._getElementOptions(this._findElement('text'));
          *     }
-         * }, { getBlockName: function() { return 'control'; } }));
+         * }, { getBlockName: function() { return 'y-control'; } }));
          */
         _getElementOptions: function (domNode) {
             if (domNode) {
@@ -519,21 +642,19 @@ modules.define(
         },
 
         /**
-         * Создает и возвращает DOM-элемент на основе BH-опций.
-         * Создание нового элемента осуществляется с помощью применения BH-шаблонов.
+         * Создает и возвращает DOM-элемент блока на основе BT-опций.
+         * Создание нового элемента осуществляется с помощью применения BT-шаблонов.
          *
-         * @protected
          * @param {Object} params
          * @returns {jQuery}
          */
-        _createDomElement: function (params) {
+        _createBlockDomNode: function (params) {
             return $(bt.apply(extend({}, params, {block: this.__self.getBlockName()})));
         },
 
         /**
          * Разбирает состояния DOM-элемента, возвращает объект вида `{stateName: stateVal, ...}`.
          *
-         * @private
          * @param {jQuery} domNode
          * @returns {Object}
          */
@@ -559,7 +680,6 @@ modules.define(
         /**
          * Возвращает имя элемента блока на основе DOM-элемента.
          *
-         * @private
          * @param {jQuery} domNode
          * @returns {String|null}
          */
@@ -579,14 +699,14 @@ modules.define(
          * @returns {String|null}
          *
          * @example
-         * provide(inherit(Block, {}, {
+         * provide(inherit(YBlock, {}, {
          *     getBlockName: function() {
          *         return 'my-button';
          *     }
          * });
          */
         getBlockName: function () {
-            return 'block';
+            return 'y-block';
         },
 
         /**
@@ -595,10 +715,10 @@ modules.define(
          * @static
          * @param {HTMLElement|jQuery} domNode
          * @param {Object} [params]
-         * @returns {Block}
+         * @returns {YBlock}
          *
          * @example
-         * var page = Page.fromDomNode(document.body);
+         * var page = YPage.fromDomNode(document.body);
          */
         fromDomNode: function (domNode, params) {
             if (!domNode) {
@@ -609,10 +729,8 @@ modules.define(
             if (!domNode.length) {
                 throw new Error('Cannot initialize "' + blockName + '" from empty jQuery object');
             }
-            var nodeStorage = this._getDomNodeDataStorage(domNode);
-            var instance = nodeStorage.blocks[blockName];
+            var instance = this._getDomNodeDataStorage(domNode).block;
             if (!instance) {
-                domNode.addClass(this._autoInitCssClass);
                 if (params === undefined) {
                     params = this._getDomNodeOptions(domNode).options || {};
                 }
@@ -630,7 +748,7 @@ modules.define(
          * @static
          * @param {HTMLElement|jQuery} domNode
          * @param {Object} params
-         * @returns {Block|null}
+         * @returns {YBlock|null}
          */
         initOnDomNode: function (domNode, params) {
             var initBlock;
@@ -684,7 +802,7 @@ modules.define(
          * @type {Function|null}
          *
          * @example
-         * var MyBlock = inherit(Block, {}, {
+         * var MyBlock = inherit(YBlock, {}, {
          *     _liveInit: function () {
          *         this._liveBind('click', function(e) {
          *             this._setState('clicked', 'yes');
@@ -772,37 +890,18 @@ modules.define(
         },
 
         /**
-         * Уничтожает инстанцию блока на переданном DOM-элементе.
-         *
-         * @static
-         * @param {HTMLElement|jQuery} domNode
-         */
-        destructOnDomNode: function (domNode) {
-            domNode = $(domNode);
-            var blockName = this.getBlockName();
-            var nodeStorage = this._getDomNodeDataStorage(domNode, true);
-            if (nodeStorage && nodeStorage.blocks[blockName]) {
-                var instance = nodeStorage.blocks[blockName];
-                if (!instance._destructed) {
-                    instance.destruct();
-                }
-                delete nodeStorage.blocks[blockName];
-            }
-        },
-
-        /**
          * Возвращает первую инстанцию блока внутри переданного фрагмента DOM-дерева.
          *
          * @static
-         * @param {jQuery|HTMLElement|Block} parentElement
-         * @returns {Block|undefined}
+         * @param {jQuery|HTMLElement|YBlock} parentElement
+         * @returns {YBlock|undefined}
          *
          * @example
-         * var input = Input.find(document.body);
+         * var input = YInput.find(document.body);
          * if (input) {
          *     input.setValue('Hello World');
          * } else {
-         *     throw new Error('Input wasn\'t found in "control".');
+         *     throw new Error('Input wasn\'t found in "y-control".');
          * }
          */
         find: function (parentElement) {
@@ -813,11 +912,11 @@ modules.define(
          * Возвращает все инстанции блока внутри переданного фрагмента DOM-дерева.
          *
          * @static
-         * @param {jQuery|HTMLElement|Block} parentElement
-         * @returns {Block[]}
+         * @param {jQuery|HTMLElement|YBlock} parentElement
+         * @returns {YBlock[]}
          *
          * @example
-         * var inputs = Input.findAll(document.body);
+         * var inputs = YInput.findAll(document.body);
          * inputs.forEach(function (input) {
          *     input.setValue("Input here");
          * });
@@ -847,12 +946,12 @@ modules.define(
          * Инициализирует все блоки на переданном фрагменте DOM-дерева.
          *
          * @static
-         * @param {HTMLElement|jQuery|Block} domNode
+         * @param {HTMLElement|jQuery|YBlock} domNode
          * @returns {Promise}
          *
          * @example
-         * Block.initDomTree(document.body).done(function () {
-         *     Button.getEmitter(document.body).on('click', function () {
+         * YBlock.initDomTree(document.body).done(function () {
+         *     YButton.getEmitter(document.body).on('click', function () {
          *         alert("Button is clicked");
          *     });
          * });
@@ -905,13 +1004,13 @@ modules.define(
             }
 
             function loadModule(moduleName) {
-                var promise = vow.promise();
+                var deferred = vow.defer();
                 if (modules.isDefined(moduleName)) {
                     modules.require([moduleName], function (moduleClass) {
                         classesToLoad[moduleName] = moduleClass;
-                        promise.fulfill();
+                        deferred.resolve();
                     });
-                    return promise;
+                    return deferred.promise();
                 } else {
                     return null;
                 }
@@ -952,7 +1051,7 @@ modules.define(
          * Уничтожает все инстанции блоков на переданном фрагменте DOM-дерева.
          *
          * @static
-         * @param {HTMLElement|jQuery|Block} domNode
+         * @param {HTMLElement|jQuery|YBlock} domNode
          */
         destructDomTree: function (domNode) {
             if (!domNode) {
@@ -971,14 +1070,11 @@ modules.define(
                 var node = $(nodes[i]);
                 var nodeStorage = this._getDomNodeDataStorage(node, true);
                 if (nodeStorage) {
-                    var blocks = nodeStorage.blocks;
-                    for (var blockName in blocks) {
-                        if (blocks.hasOwnProperty(blockName)) {
-                            blocks[blockName].__self.destructOnDomNode(node);
-                        }
+                    if (nodeStorage.block) {
+                        nodeStorage.block.destruct();
                     }
-                    nodeStorage.blocks = {};
                     var blockEvents = nodeStorage.blockEvents;
+                    var blockName;
                     for (blockName in blockEvents) {
                         if (blockEvents.hasOwnProperty(blockName)) {
                             blockEvents[blockName].offAll();
@@ -994,11 +1090,11 @@ modules.define(
          * На полученном эмиттере можно слушать блочные события, которые будут всплывать до этого DOM-элемента.
          *
          * @static
-         * @param {HTMLElement|jQuery|Block} domNode
-         * @returns {EventEmitter}
+         * @param {HTMLElement|jQuery|YBlock} domNode
+         * @returns {YEventEmitter}
          *
          * @example
-         * Button.getEmitter(document.body).on('click', function () {
+         * YButton.getEmitter(document.body).on('click', function () {
          *     alert('Button is clicked');
          * });
          */
@@ -1011,7 +1107,7 @@ modules.define(
 
             if (!emitter) {
                 domNode.addClass(this._delegateEventsCssClass);
-                emitter = new BlockEventEmitter(this, domNode);
+                emitter = new YBlockEventEmitter(this, domNode);
                 nodeStorage.blockEvents[blockName] = emitter;
             }
 
@@ -1023,17 +1119,17 @@ modules.define(
          *
          * @static
          * @protected
-         * @param {jQuery|HTMLElement|Block} domNode
-         * @returns {Block}
+         * @param {jQuery|HTMLElement|YBlock} domNode
+         * @returns {YBlock}
          */
         _getDomNodeFrom: function (domNode) {
             if (domNode) {
-                if (domNode instanceof Block) {
+                if (domNode instanceof YBlock) {
                     domNode = domNode.getDomNode();
                 }
                 domNode = $(domNode);
             } else {
-                throw new Error('jQuery element, DOM Element or Block instance should be specified');
+                throw new Error('jQuery element, DOM Element or YBlock instance should be specified');
             }
             return domNode;
         },
@@ -1042,7 +1138,6 @@ modules.define(
          * Возвращает опции блока или элемента на указанном DOM-элементе.
          *
          * @static
-         * @private
          * @param {jQuery} domNode
          */
         _getDomNodeOptions: function (domNode) {
@@ -1054,19 +1149,17 @@ modules.define(
          * Возвращает хранилище данных для DOM-элемента.
          *
          * @static
-         * @private
          * @param {jQuery} domNode
          * @param {Boolean} [skipCreating]
          * @returns {Object}
          */
         _getDomNodeDataStorage: function (domNode, skipCreating) {
-            var data = domNode.data('block-storage');
+            var data = domNode.data('y-block');
             if (!data && !skipCreating) {
                 data = {
-                    blocks: {},
                     blockEvents: {}
                 };
-                domNode.data('block-storage', data);
+                domNode.data('y-block', data);
             }
             return data;
         },
@@ -1075,19 +1168,17 @@ modules.define(
          * Возвращает специальное имя события, которое используется для распространения события блока по DOM дереву.
          *
          * @static
-         * @private
          * @param {String} eventName Имя события блока.
          * @returns {String}
          */
         _getPropagationEventName: function (eventName) {
-            return 'block/' + this.getBlockName() + '/' + eventName;
+            return 'y-block/' + this.getBlockName() + '/' + eventName;
         },
 
         /**
          * CSS-класс для автоматической инициализации.
          *
          * @static
-         * @private
          * @type {String}
          */
         _autoInitCssClass: '_init',
@@ -1096,7 +1187,6 @@ modules.define(
          * CSS-класс для делегирования событий.
          *
          * @static
-         * @private
          * @type {String}
          */
         _delegateEventsCssClass: '_live-events'
@@ -1106,16 +1196,16 @@ modules.define(
      * Эмиттер, используемый для делегирования событий блока.
      *
      * Делегирование событий блока происходит следующим образом:
-     * - Когда блок инициирует событие `eventName`, он также инциирует событие `block/blockName/eventName`
+     * - Когда блок инициирует событие `eventName`, он также инциирует событие `y-block/blockName/eventName`
      *   на DOM ноде блока. Это событие распространяется вверх по DOM дереву.
      *
-     * - При добавлении нового события в `BlockEventEmitter`, для переданной DOM ноды добавляется обработчик события
-     *   `block/blockName/eventName`, который инициирует в эмиттере событие `eventName`.
+     * - При добавлении нового события в `YBlockEventEmitter`, для переданной DOM ноды добавляется обработчик события
+     *   `y-block/blockName/eventName`, который инициирует в эмиттере событие `eventName`.
      *
-     * - При удалении события из `BlockEventEmitter`, соответствующий обработчик удаляется из DOM ноды. Тем самым
+     * - При удалении события из `YBlockEventEmitter`, соответствующий обработчик удаляется из DOM ноды. Тем самым
      *   прекращается делегирование.
      */
-    var BlockEventEmitter = inherit(EventEmitter, {
+    var YBlockEventEmitter = inherit(YEventEmitter, {
         /**
          * Создает эмиттер событий, который позволяет слушать события экземпляров блока `blockClass`
          * на DOM ноде `domNode`.
@@ -1165,5 +1255,5 @@ modules.define(
         return stateVal;
     }
 
-    provide(Block);
+    provide(YBlock);
 });
