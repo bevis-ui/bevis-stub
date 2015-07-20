@@ -1,35 +1,40 @@
 {
     "name": "bevis-stub",
     "private": true,
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Project stub based on BEViS",
     "scripts": {
+        "start": "node server/boot.js",
         "test": "make test"
     },
     "author": "Yandex Maps",
     "license": "MIT",
     "dependencies": {
-        "enb-bt": "0.0.17",
+        "enb-bevis-helper": ">=3.0.0",
         "express": "3.2.6",
         "inherit": "1.0.4",
         "node.extend": "1.0.7",
-        "vow": "0.3.9",
-        "vow-fs": "0.2.0",
+        "vow-fs": ">=0.3.2",
+        "vow": "0.4.4",
         "winston": "0.6.2",
         "ym": "0.0.8"
     },
     "devDependencies": {
-        "enb": "0.8.43",
-        "enb-modules": "0.0.14",
-        "enb-stylus": "0.0.3",
         "jscs": "1.0.13",
         "jshint-groups": "0.5.3",
         "chai": "1.7.2",
-        "git-hooks": "0.0.3",
+        "git-hooks": "0.0.10",
         "mocha": "1.12.0",
         "mocha-phantomjs": "3.1.0",
-        "phantomjs": "1.9.1-0",
+        "phantomjs": "1.9.7-12",
         "sinon": "1.7.3",
         "supervisor": "0.5.3"
+    },
+    "enb": {
+        "sources": [
+            "blocks",
+            "core",
+            "pages"
+        ]
     }
 }

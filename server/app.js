@@ -14,6 +14,7 @@ app
         next();
     })
     .use(assets.middleware())
+    .use('/', express.static(__dirname + '/../'))
     .use('/blocks', express.static(__dirname + '/../blocks'))
     .use(app.router)
     .use(function (req, res) {
@@ -57,7 +58,7 @@ function startApp(portOrSocket) {
 }
 
 exports.start = function () {
-    startApp(env.socket || env.port || 8080);
+    startApp(env.socket || process.env.PORT || 8080);
 };
 
 if (!module.parent) {

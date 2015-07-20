@@ -3,6 +3,7 @@
         ".git/**",
         ".enb/**",
         "node_modules/**",
+        "build/**",
         "pages/**",
         "test/**",
         "core/vow/**",
