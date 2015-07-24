@@ -40,8 +40,12 @@ modules.define(
                 this._passwordInput.on('input-submitted', this._onInputSubmitted, this);
             },
 
-            _onInputSubmitted: function () {
-                console.log('Форма поймала событие от Input');
+            /**
+             * Реагирует на нажатие клавиши Enter в `Input`
+             * @param {YEventEmitter} e
+             */
+            _onInputSubmitted: function (e) {
+                console.log('Форма поймала событие на Input = ', e);
             }
         }, {
             getBlockName: function () {
