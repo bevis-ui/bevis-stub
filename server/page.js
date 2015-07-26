@@ -31,15 +31,20 @@ var Page = inherit({
     handle: function () {
         return vow.all([
                 this._getPages(),
-                this._getTemplate()
+                this._getTemplate(),
+                this._getI18n()
             ])
-            .spread(function (pages, template) {
+            .spread(function (pages, bt, buildI18n) {
+                var i18n = buildI18n();
+                pages.setI18n(i18n);
+                bt.lib.i18n = i18n;
+
                 return pages.exec(this._pageName, {
                     query: this._query,
                     options: this._getPageOptions(),
                     lang: this._lang
                 }).then(function (btJson) {
-                    return this._applyTemplate(btJson, template);
+                    return this._applyTemplate(btJson, bt);
                 }.bind(this));
             }.bind(this));
     },
