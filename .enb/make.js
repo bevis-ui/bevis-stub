@@ -3,7 +3,7 @@ var path = require('path');
 
 module.exports = function (config) {
 
-    config.setLanguages(['ru']);
+    config.setLanguages(['ru', 'en']);
 
     config.includeConfig('enb-bevis-helper');
 
