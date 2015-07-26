@@ -41,6 +41,11 @@ page:
 block:
 	./tools/make-block.sh
 
+# Create new keyset
+.PHONY: keyset
+keyset:
+	./tools/make-keyset.sh
+
 # Run application in development mode
 app-dev:
 	@$(NPM_BIN)/supervisor -w server,configs -- server/boot.js
