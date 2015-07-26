@@ -4,14 +4,16 @@ modules.define(
         'inherit',
         'block',
         'input',
-        'super-input'
+        'super-input',
+        'y-i18n'
     ],
     function (
         provide,
         inherit,
         YBlock,
         Input,
-        SuperInput
+        SuperInput,
+        i18n
     ) {
         var form = inherit(YBlock, {
             __constructor: function () {
@@ -33,7 +35,7 @@ modules.define(
                 this._passwordInput = new SuperInput({
                     name: 'passwordField',
                     type: 'password',
-                    placeholder: 'Введите пароль',
+                    placeholder: i18n('any-other', 'my-key'),
 
                     parentNode: formDomNode
                 });
