@@ -32,7 +32,7 @@
     },
     "enb": {
         "sources": [
-            "client/blocks",
+            "client/views",
             "client/core",
             "client/pages"
         ]
