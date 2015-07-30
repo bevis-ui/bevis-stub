@@ -17,7 +17,7 @@ module.exports = function (config) {
         ])
         .useAutopolyfiller();
 
-    fs.readdirSync('pages').forEach(function(pageName) {
+    fs.readdirSync('client/pages').forEach(function(pageName) {
         var nodeName = pageName.replace(/(.*?)\-page/, path.join('build', '$1'));
 
         config.node(nodeName, function (nodeConfig) {
