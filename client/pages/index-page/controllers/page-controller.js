@@ -1,12 +1,10 @@
 modules.define(
     'page-controller',
     [
-        'jquery',
         'inherit'
     ],
     function (
         provide,
-        $,
         inherit
     ) {
 
