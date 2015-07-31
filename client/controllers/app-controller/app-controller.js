@@ -1,4 +1,9 @@
-modules.require(['block'], function (Block) {
-    Block.initDomTree(window.document).done();
-    console.log('aaaaa');
+/**
+ * Application start
+ */
+modules.require(['block', 'page-controller'], function (Block, PageController) {
+    Block.initDomTree(document.body).done(function () {
+        var pageController = new PageController();
+        pageController.start();
+    });
 });

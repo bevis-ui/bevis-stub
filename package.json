@@ -34,8 +34,19 @@
         "sources": [
             "client/controllers",
             "client/views",
-            "client/core",
-            "client/pages"
-        ]
+            "client/core"
+        ],
+        "profiles": {
+            "index-page": {
+                "sources": [
+                    "client/pages/index-page"
+                ]
+            },
+            "test-page": {
+                "sources": [
+                    "client/pages/test-page"
+                ]
+            }
+        }
     }
 }

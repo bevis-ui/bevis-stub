@@ -24,6 +24,7 @@ module.exports = function (config) {
 
             bevisHelper
                 .sourceDeps(pageName)
+                .sources({profile: pageName})
                 .forServerPage()
                 .configureNode(nodeConfig);
 
