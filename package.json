@@ -32,6 +32,7 @@
     },
     "enb": {
         "sources": [
+            "client/controllers",
             "client/views",
             "client/core",
             "client/pages"

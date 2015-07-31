@@ -1,6 +1,5 @@
 - page
-- block: block
-  elem: auto-init
+- app-controller
 - input
 - super-input
 - form
