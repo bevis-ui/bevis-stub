@@ -1,5 +1,3 @@
-modules.require(['jquery', 'block'], function ($, Block) {
-    $(function () {
-        Block.initDomTree(window.document).done();
-    });
+modules.require(['block'], function (Block) {
+    Block.initDomTree(window.document).done();
 });
