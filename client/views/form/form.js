@@ -44,10 +44,14 @@ modules.define(
 
             /**
              * Реагирует на нажатие клавиши Enter в `Input`
-             * @param {YEventEmitter} e
              */
             _onInputSubmitted: function (e) {
-                console.log('Форма поймала событие на Input = ', e);
+                var data = {
+                    login: this._greetingInput.getValue(),
+                    password: this._passwordInput.getValue()
+                };
+
+                this.emit('form-submitted', data);
             }
         }, {
             getBlockName: function () {

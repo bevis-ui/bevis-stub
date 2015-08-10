@@ -34,7 +34,8 @@
         "sources": [
             "client/controllers",
             "client/views",
-            "client/core"
+            "client/core",
+            "client/models"
         ],
         "profiles": {
             "index-page": {

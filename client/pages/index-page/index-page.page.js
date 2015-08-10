@@ -10,30 +10,7 @@ module.exports = function (pages) {
             scripts: [
                 {url: options.assetsPath + '.' + params.lang + '.js'}
             ],
-            body: [
-                {
-                    block: 'layout',
-                    aside: {
-                        block: 'sidebar',
-
-                        title: 'Привет, BEViS!',
-                        resources: [
-                            {
-                                text: 'Репозиторий',
-                                url: 'https://github.com/bevis-ui/'
-                            },
-                            {
-                                text: 'Учебник для новичков',
-                                url: 'https://github.com/bevis-ui/docs/blob/master/manual-for-beginner.md'
-                            },
-                            {
-                                text: 'Учебник для старичков',
-                                url: 'https://github.com/bevis-ui/docs/blob/master/manual-for-master.md'
-                            },
-                        ]
-                    }
-                }
-            ]
+            body: []
         };
     });
 };
