@@ -24,6 +24,9 @@ modules.define(
 
             // Создали экземпляр Модели Авторизации
             this._authModel = new AuthModel();
+
+            // Слушаем событие на модели
+            // Произойдёт, когда модель успешно сохранит данные
             this._authModel.on('saved', this.start, this);
         },
 
@@ -33,11 +36,10 @@ modules.define(
         start: function () {
             $('body').empty();
 
-            // Получаем состояние авторизации - да или нет.
+            // Спрашиваем у Модели, авторизован ли пользователь
             var isAuthorized = this._authModel.isAuthorized();
 
             if (isAuthorized) {
-
                 // Получаем авторизационные данные
                 var authData = this._authModel.get();
 
