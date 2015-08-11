@@ -18,7 +18,8 @@ modules.define(
             focus: function () {
                 console.log('Переопределил метод focus!');
 
-                this.__base.call();
+                // Вызвали базовый метод
+                this.__base();
             }
         });
 
