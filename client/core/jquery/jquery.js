@@ -5,14 +5,22 @@
 /* global jQuery */
 modules.define(
     'jquery',
-    ['load-script', 'jquery__config'],
-    function (provide, loadScript, config) {
+    [
+        'load-script',
+        'jquery-config'
+    ],
+    function (
+        provide,
+        loadScript,
+        config
+    ) {
 
+    /* global jQuery */
     if (typeof jQuery !== 'undefined') {
         provide(jQuery);
     } else {
-        loadScript(config.url, function () {
-            provide(jQuery);
+        loadScript(config.url).done(function () {
+            provide(jQuery.noConflict(true));
         });
     }
 });
