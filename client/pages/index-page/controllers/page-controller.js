@@ -22,16 +22,9 @@ modules.define(
         __constructor: function () {
             console.log('index: PageController constructor');
 
-            /**
-             * Текущее состояние авторизации
-             * @type {Boolean}
-             */
-            this._isAuthorized = false;
-
             // Создали экземпляр Модели Авторизации
             this._authModel = new AuthModel();
             this._authModel.on('saved', this.start, this);
-            this._authModel.on('not-saved', this._onAuthNotSaved, this);
         },
 
         /**
@@ -41,9 +34,9 @@ modules.define(
             $('body').empty();
 
             // Получаем состояние авторизации - да или нет.
-            this._isAuthorized = this._authModel.isAuthorized();
+            var isAuthorized = this._authModel.isAuthorized();
 
-            if (this._isAuthorized) {
+            if (isAuthorized) {
 
                 // Получаем авторизационные данные
                 var authData = this._authModel.get();
@@ -78,10 +71,6 @@ modules.define(
                 formAuthView.getDomNode().appendTo($('body'));
                 formAuthView.on('form-submitted', this._onFormAuthSubmitted, this);
             }
-        },
-
-        _onAuthNotSaved: function () {
-            alert('Во время сохранения авторизационных данных произошла ошибка. Попробуйте ещё раз');
         },
 
         /**

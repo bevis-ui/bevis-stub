@@ -16,7 +16,6 @@ modules.define(
                 this.__base.apply(this, arguments);
 
                 this._cookieName = 'authorization';
-                this._userData = this._getUserData();
             },
 
             /**
@@ -24,33 +23,21 @@ modules.define(
              * @returns {Boolean}
              */
             isAuthorized: function () {
-                return Boolean(this._userData && this._userData.login && this._userData.password);
+                var userData = this._getUserData();
+
+                return Boolean(userData && userData.login && userData.password);
             },
 
             /**
-             * Сохраняет данные в куке
+             * Сохраняет авторизационные данные
              * @param {Object} data Сохраняемые данные
              */
             save: function (data) {
+                // Передаём данные в бекенд или в куку
+                this._setUserData(data);
 
-                // Сохраняем авторизационные данные в памяти
-                this._userData = data;
-
-                // Сериализуем в строку, чтобы положить в куку
-                data = JSON.stringify(data);
-
-                // Сохраняем данные в куке...
-                Cookie.set(this._cookieName, data, {
-                    path: '/',
-                    expires: 365
-                });
-
-                // Проверка, успешно ли сохранились данные
-                if (this.isAuthorized()) {
-                    this.emit('saved');
-                } else {
-                    this.emit('not-saved');
-                }
+                // Сообщаем контроллеру об успехе
+                this.emit('saved');
             },
 
             /**
@@ -58,7 +45,7 @@ modules.define(
              * @returns {Object}
              */
             get: function () {
-                return this._userData;
+                return this._getUserData();
             },
 
             /**
@@ -71,6 +58,21 @@ modules.define(
                 var authCookie = Cookie.get(this._cookieName);
 
                 return authCookie? JSON.parse(authCookie) : null;
+            },
+
+            /**
+             * Сохраняет авторизационные данные в куке
+             * @param {Object} data Сохраняемые данные
+             */
+            _setUserData: function (data) {
+                // Сериализуем в строку, чтобы положить в куку
+                data = JSON.stringify(data);
+
+                // Сохраняем данные в куке...
+                Cookie.set(this._cookieName, data, {
+                    path: '/',
+                    expires: 365
+                });
             }
         });
     
