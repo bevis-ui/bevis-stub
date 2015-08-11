@@ -91,15 +91,6 @@ modules.define('cookie', function (provide) {
             options = options || {};
             options.expires = new Date(0);
             this.set(name, '', options);
-        },
-
-        /**
-         * Устанавливает объект, используемый в качестве документа. Используется только в тестах.
-         *
-         * @param {Object} newDoc
-         */
-        _setDocument: function (newDoc) {
-            doc = newDoc;
         }
     });
 });

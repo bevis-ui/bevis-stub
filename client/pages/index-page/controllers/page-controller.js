@@ -22,23 +22,35 @@ modules.define(
         __constructor: function () {
             console.log('index: PageController constructor');
 
+            /**
+             * Текущее состояние авторизации
+             * @type {Boolean}
+             */
+            this._isAuthorized = false;
+
             // Создали экземпляр Модели Авторизации
             this._authModel = new AuthModel();
-
-            // Слушаем событие на модели
-            // Произойдёт, когда модель успешно сохранит данные
-            this._authModel.on('user-data-saved', this.start, this);
+            this._authModel.on('saved', this.start, this);
+            this._authModel.on('not-saved', this._onAuthNotSaved, this);
         },
 
+        /**
+         * Отображает контент или форму авторизации, елси пользователь незалогинен
+         */
         start: function () {
-            // Спрашиваем у Модели, авторизован ли пользователь
-            var isAuthorized = this._authModel.isAuthorized();
+            $('body').empty();
 
-            if (isAuthorized) {
-                $('body').empty();
+            // Получаем состояние авторизации - да или нет.
+            this._isAuthorized = this._authModel.isAuthorized();
 
+            if (this._isAuthorized) {
+
+                // Получаем авторизационные данные
+                var authData = this._authModel.get();
+
+                // Отображаем контент с участием авторизационных данных
                 var sidebarView = new SidebarView({
-                    title: 'Привет, BEViS!',
+                    title: 'Привет, ' + authData.login + '!',  // <------- Здесь показываем логин пользователя
                     resources: [
                         {
                             text: 'Репозиторий',
@@ -54,22 +66,30 @@ modules.define(
                         }
                     ]
                 });
-                sidebarView.getDomNode().appendTo($('body')) ;
+
+                sidebarView.getDomNode().appendTo($('body'));
+
             } else {
+
                 var formAuthView = new FormView({
                     titleText: i18n('form', 'title-text')
                 });
+
                 formAuthView.getDomNode().appendTo($('body'));
                 formAuthView.on('form-submitted', this._onFormAuthSubmitted, this);
             }
         },
 
+        _onAuthNotSaved: function () {
+            alert('Во время сохранения авторизационных данных произошла ошибка. Попробуйте ещё раз');
+        },
+
         /**
          * Обработчик сабмита на форме авторизации
-         * @param {YEventEmiiter} e
+         * @param {YEventEmitter} e
          */
         _onFormAuthSubmitted: function (e) {
-            this._authModel.saveUserData(e.data); // <---- Сохраняем данные, пришедшие из формы
+            this._authModel.save(e.data); // <---- Сохраняем данные, пришедшие из формы
         }
     });
 

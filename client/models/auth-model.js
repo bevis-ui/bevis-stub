@@ -2,22 +2,21 @@ modules.define(
     'auth-model',
     [
         'inherit', 
-        'event-emitter'
+        'event-emitter',
+        'cookie'
     ],
     function (
         provide, 
         inherit, 
-        YEventEmitter
+        YEventEmitter,
+        Cookie
     ) {
         var AuthModel = inherit(YEventEmitter, {
             __constructor: function () {
                 this.__base.apply(this, arguments);
 
-                /**
-                 * Текущее состояние авторизации
-                 * @type {Boolean}
-                 */
-                this._isAuthorized = false;
+                this._cookieName = 'authorization';
+                this._userData = this._getUserData();
             },
 
             /**
@@ -25,34 +24,55 @@ modules.define(
              * @returns {Boolean}
              */
             isAuthorized: function () {
-                return this._isAuthorized;
+                return Boolean(this._userData && this._userData.login && this._userData.password);
             },
 
             /**
              * Сохраняет данные в куке
              * @param {Object} data Сохраняемые данные
              */
-            saveUserData: function (data) {
-                console.log("data = ", data);
+            save: function (data) {
+
+                // Сохраняем авторизационные данные в памяти
+                this._userData = data;
+
+                // Сериализуем в строку, чтобы положить в куку
+                data = JSON.stringify(data);
 
                 // Сохраняем данные в куке...
+                Cookie.set(this._cookieName, data, {
+                    path: '/',
+                    expires: 365
+                });
 
-                // Сообщаем, что данные сохранены успешно
-                this._onSavingSuccess();
+                // Проверка, успешно ли сохранились данные
+                if (this.isAuthorized()) {
+                    this.emit('saved');
+                } else {
+                    this.emit('not-saved');
+                }
             },
 
             /**
-             * Эмитирует событие о том, что авторизационные данные сохранены успешно
+             * Возвращает авторизационные данные
+             * @returns {Object}
              */
-            _onSavingSuccess: function () {
-                // Сохраняем информацию в хранилище
-                this._isAuthorized = true;
+            get: function () {
+                return this._userData;
+            },
 
-                // Сообщаем об успехе
-                this.emit('user-data-saved');
+            /**
+             * Возвращает авторизационные данные пользователя
+             * Берёт их из куки 'authorization'
+             *
+             * @returns {Object | null}
+             */
+            _getUserData: function () {
+                var authCookie = Cookie.get(this._cookieName);
+
+                return authCookie? JSON.parse(authCookie) : null;
             }
         });
     
         provide(AuthModel);
 });
-
