@@ -23,7 +23,7 @@ modules.define(
              * @returns {Boolean}
              */
             isAuthorized: function () {
-                var userData = this._getUserData();
+                var userData = this.get();
 
                 return Boolean(userData && userData.login && userData.password);
             },
