@@ -80,7 +80,7 @@ modules.define(
          * @param {YEventEmitter} e
          */
         _onFormAuthSubmitted: function (e) {
-            this._authModel.save(e.data); // <---- Сохраняем данные, пришедшие из формы
+            this._authModel.set(e.data); // <---- Сохраняем данные, пришедшие из формы
         }
     });
 

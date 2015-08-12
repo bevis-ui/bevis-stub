@@ -32,7 +32,7 @@ modules.define(
              * Сохраняет авторизационные данные
              * @param {Object} data Сохраняемые данные
              */
-            save: function (data) {
+            set: function (data) {
                 // Передаём данные в бекенд или в куку
                 this._setUserData(data);
 
