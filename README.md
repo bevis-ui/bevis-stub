@@ -28,6 +28,26 @@ mklink /J configs\current configs\development
 git update-index --assume-unchanged configs/current
 ```
 
+## Как подключить свой репозиторий
+В директории `your-project` у вас находится клон `bevis-ui/bevis-stub`, его `origin` "смотрит" в наш репозиторий.
+ Вы хотите писать свой проект и пушить его в свой репозиторий? Три команды:  
+```shell
+git remote rename origin upstream
+git remote add origin git@github.com:<ваш_аккаунт_на_гитхабе>/<имя_репозитория>.git
+git push -u origin master
+```
+Теперь `origin` "смотрит" в ваш репозиторий. А `upstream` смотрит в оригинальный `github.com:bevis-ui/bevis-stub` 
+
+Чтобы получить обновления из `github.com:bevis-ui/bevis-stub`, делаем `git pull` из `upstream`:
+```
+git pull upstream master
+```
+Чтобы получать обновления из _вашего_ и пушить в _ваш_, работаем с `origin`:
+```
+git pull origin master
+git push origin master
+```
+
 ## Как сделать ещё одну страницу?
 Запустить команду и ответить на вопрос:
 ```shell
