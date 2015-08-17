@@ -46,6 +46,11 @@ block:
 keyset:
 	./tools/make-keyset.sh
 
+# Create new keyset
+.PHONY: static
+static:
+	node server/build-static.js
+
 # Run application in development mode
 app-dev:
 	@$(NPM_BIN)/supervisor -w server,configs -- server/boot.js
