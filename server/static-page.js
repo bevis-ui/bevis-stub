@@ -1,7 +1,5 @@
 var inherit = require('inherit');
 var path = require('path');
-var config = require('./config');
-var assets = config.get('assets');
 var vow = require('vow');
 var vowFs = require('vow-fs');
 var Page = require('./page');
